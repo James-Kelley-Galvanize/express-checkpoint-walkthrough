@@ -1,31 +1,28 @@
 const express = require("express");
-const {uniqueId}= require('lodash')
+const { uniqueId } = require("lodash");
 
 let movieData = require("./dummyData");
 
 const app = express();
 const port = 8080;
 
-movieData = movieData.map(movie => {
-  movie.id = uniqueId()
+movieData = movieData.map((movie) => {
+  movie.id = uniqueId();
   return movie;
-})
+});
 
-let nextId = movieData.length+1;
+let nextId = movieData.length + 1;
 
-
-app.use(express.json())
+app.use(express.json());
 
 app.get("/", (req, res) => {
   res.send("Hello film buffs!");
 });
 
-app.get('/movies/', (req, res)=>{
- 
-
-  if(req.query.titleQuery){
-    let {titleQuery} = req.query
- /*
+app.get("/movies/", (req, res) => {
+  if (req.query.titleQuery) {
+    let { titleQuery } = req.query;
+    /*
   ## ROUTE 2
   
   /movies?title={titleQuery}	GET
@@ -36,30 +33,35 @@ app.get('/movies/', (req, res)=>{
   400 - invalid titleQuery
   404 - no results
   */
-    if (titleQuery.length === 0 || typeof titleQuery === 'number'){
-      res.status(400).end()
-    } else { // if query is viable
-      let matches = movieData.filter(movie=>movie.title.toLowerCase().includes(titleQuery.toLowerCase()))
+    if (titleQuery.length === 0 || typeof titleQuery === "number") {
+      res.status(400).end();
+    } else {
+      // if query is viable
+      let matches = movieData.filter((movie) =>
+        movie.title.toLowerCase().includes(titleQuery.toLowerCase())
+      );
 
-      if (!matches.length){
-        res.status (404).end()
-      } else{
-        res.status(200).json(matches)
+      if (!matches.length) {
+        res.status(404).end();
+      } else {
+        res.status(200).json(matches);
       }
-
     }
+  } else {
+    /* ## ROUTE 1
+
+  /movies	GET
+
+  200 - list of all or book by id (array)
+  400 - invalid id
+  404 - book not found
+  */
+    res.status(200).json(movieData);
   }
-  else {
+});
 
-    res.status(200).json(movieData)
-  }
- 
- 
-})
-
-
-app.get("/movies/:id", (req, res)=>{
-/*
+app.get("/movies/:id", (req, res) => {
+  /*
 ## ROUTE 3
 
 /movies/{movieId}	GET
@@ -71,25 +73,23 @@ match movie's id
 400 - invalid id supplies
 404 - no matches
 */
- let {id} = req.params
- id = parseInt(id)
+  let { id } = req.params;
+  id = parseInt(id);
 
- if( typeof id !== 'number' || id <=0 || id=== NaN){
-   res.status(400).end()
- } else{
-    let matches = movieData.filter(movie => movie.id === id);
+  if (typeof id !== "number" || id <= 0 || id === NaN) {
+    res.status(400).end();
+  } else {
+    let matches = movieData.filter((movie) => movie.id === id);
 
-    if (!matches.length){
-      res.status(404).end()
-    } else{
-      res.status(200).json(matches[0])
+    if (!matches.length) {
+      res.status(404).end();
+    } else {
+      res.status(200).json(matches[0]);
     }
+  }
+});
 
- }
-
-})
-
-app.post('/movies', (req,res)=>{
+app.post("/movies", (req, res) => {
   /*
   
   ## ROUTE 4
@@ -106,17 +106,16 @@ app.post('/movies', (req,res)=>{
   
   200 - movie posted - send movie info object WITH new id number
   */
-  let newMovie = req.body
-  newMovie= {id:uniqueId(), ...newMovie}
-  nextId ++;
+  let newMovie = req.body;
+  newMovie = { id: uniqueId(), ...newMovie };
+  nextId++;
 
-  movieData.push(newMovie)
-  res.status(200).json(newMovie)
+  movieData.push(newMovie);
+  res.status(200).json(newMovie);
+});
 
-})
-
-app.delete('/movies/:id', (req,res)=>{
-/*
+app.delete("/movies/:id", (req, res) => {
+  /*
 ## ROUTE 5
 
 /movies/{movieId}	DELETE
@@ -128,19 +127,16 @@ deletes movie by id
 400 - invalid id
 */
 
-  let {id} = req.params
-  id = parseInt(id)
+  let { id } = req.params;
+  id = parseInt(id);
 
-  if( typeof id !== 'number' || id <=0 || id === NaN){
-    res.status(400).end()
+  if (typeof id !== "number" || id <= 0 || id === NaN) {
+    res.status(400).end();
   } else {
-    movieData = movieData.filter(movie => movie.id !== id)
-    res.status(200).send('Movie deleted')
+    movieData = movieData.filter((movie) => movie.id !== id);
+    res.status(200).send("Movie deleted");
   }
-
-})
-
-
+});
 
 app.listen(port, () => {
   console.log(`MovieDB Server listening at ${port}!`);
